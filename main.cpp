@@ -82,7 +82,7 @@ brain br;
 // controller
 controller cr;
 
-//corcertion variables
+//correction variables
 //TEST THESE BEFORE COMP
 //TEST THESE BEFORE COMP
 //TEST THESE BEFORE COMP
@@ -101,6 +101,7 @@ motor mBR(PORT20);
 // motor for latch and forklift
 motor mForkLift(PORT12);
 motor mLatch(PORT3);
+motor mXeilin(PORT16);
 
 //sensors
 bumper bumpf(Brain.ThreeWirePort.G);
@@ -112,75 +113,61 @@ void a(){mForkLift.spin(forward,10,rpm);}
 void fu(){mForkLift.spin(reverse,10,rpm);}
 void b(){mLatch.spin(forward,10,rpm);}
 void c(){mLatch.spin(reverse,10,rpm);}
-//code to ran during drive control period
-void drv(){
 
+
+void turnX(int x){
+  mFR.spinToPosition(x + mFR.position(degrees),degrees);
+  mBR.spinToPosition(x + mBR.position(degrees),degrees);
+  mFL.spinToPosition(-x + mFL.position(degrees),degrees);
+  mBL.spinToPosition(-x + mBL.position(degrees),degrees);
+}
+
+void moveForward(){
+  mFR.spin(forward,50,rpm);
+  mBR.spin(forward,50,rpm);
+  mFL.spin(forward,50,rpm);
+  mBL.spin(forward,50,rpm);
+}
+//code to run during drive control period
+void drv(){
   //drives the robot
   mFR.spin(forward,(cr.Axis3.position() - cr.Axis4.position()), rpm);
   mBR.spin(forward,(cr.Axis3.position() - cr.Axis4.position()), rpm);
   mFL.spin(forward, (cr.Axis3.position() + cr.Axis4.position()), rpm);
   mBL.spin(forward, (cr.Axis3.position() + cr.Axis4.position()), rpm);
 
-  //controls the forklift
-  cr.ButtonR1.pressed(a);
-  cr.ButtonR2.pressed(fu);
 
   //latch
   cr.ButtonR1.pressed(b);
   cr.ButtonR2.pressed(c);
 }
 
-void turn180(){
-  mFR.spin(forward,turnb, rpm);
-  mBR.spin(forward,turnb, rpm);
-  
-  mFL.spin(reverse, turnb, rpm);
-  mBL.spin(reverse, turnb, rpm);
-}
 
 //uses vision sensor to find nearest object and goes to it
 void sense(){
   visf.takeSnapshot(blue);
 
-  if(fabs(visf.largestObject.angle) > 0.3){ //check to make sure angle is in radians
-    mFR.spin(forward, visf.largestObject.angle * radToRPM, rpm);
-    mBR.spin(forward, visf.largestObject.angle * radToRPM, rpm);
-    mFL.spin(reverse, visf.largestObject.angle * radToRPM, rpm);
-    mBL.spin(reverse, visf.largestObject.angle * radToRPM, rpm);
+  if (!visf.objects[0].exists) {
+    turnX(45);
+    visf.takeSnapshot(blue);
+  }else{
+
+    //rotates it until it's in the correct direction
+    while(!(185> visf.largestObject.centerX >125)){
+      visf.takeSnapshot(blue);
+      if(185< visf.largestObject.centerX){
+        turnX(-5);
+      } else if (visf.largestObject.centerX < 125){
+        turnX(5);
+      }else{
+        break;
+      }
+    }
+
+    moveForward();
   }
 
-  while(!bumpf.pressing()){
-    mFR.spin(forward, 10, rpm);
-    mBR.spin(forward, 10, rpm);
-    mFL.spin(forward, 10, rpm);
-    mBL.spin(forward, 10, rpm);
-  }
-
-  while(!bumpb.pressing()){
-    mForkLift.spin(forward, 10, rpm);
-  }
-
-  //claw open
-  mLatch.spin(forward, 10, rpm);
-
-  if(bumpclaw.pressing()){
-    mLatch.spin(reverse, 10, rpm);
-  }
-
-  visf.takeSnapshot(green);
-  if(fabs(visf.largestObject.angle) > 0.3){ //check to make sure angle is in radians
-    mFR.spin(forward, visf.largestObject.angle * radToRPM, rpm);
-    mBR.spin(forward, visf.largestObject.angle * radToRPM, rpm);
-    mFL.spin(reverse, visf.largestObject.angle * radToRPM, rpm);
-    mBL.spin(reverse, visf.largestObject.angle * radToRPM, rpm);
-  }
-
-  while(!bumpf.pressing()){
-    mFR.spin(forward, 10, rpm);
-    mBR.spin(forward, 10, rpm);
-    mFL.spin(forward, 10, rpm);
-    mBL.spin(forward, 10, rpm);
-  }
+  wait(0.5, seconds);
 }
 
 //code for self driving
@@ -188,8 +175,6 @@ void automous(){
   bumpf.pressed(turn180);
   sense();
 }
-
-
 
 //for testing
 void motorTest(){
