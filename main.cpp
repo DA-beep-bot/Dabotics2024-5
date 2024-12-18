@@ -101,7 +101,7 @@ motor mBR(PORT20);
 // motor for latch and forklift
 motor mForkLift(PORT12);
 motor mLatch(PORT3);
-motor mXeilin(PORT16);
+//motor mXeilin(PORT16);
 
 //sensors
 bumper bumpf(Brain.ThreeWirePort.G);
@@ -111,30 +111,27 @@ vision visf(PORT6);
 
 void a(){mForkLift.spin(forward,10,rpm);}
 void fu(){mForkLift.spin(reverse,10,rpm);}
-void b(){mLatch.spin(forward,10,rpm);}
-void c(){mLatch.spin(reverse,10,rpm);}
+//void b(){mLatch.spin(forward,10,rpm);}
+//void c(){mLatch.spin(reverse,10,rpm);}
 
 
+//turns x degreees
 void turnX(int x){
   mFR.spinToPosition(x + mFR.position(degrees),degrees);
-  mBR.spinToPosition(x + mBR.position(degrees),degrees);
-  mFL.spinToPosition(-x + mFL.position(degrees),degrees);
-  mBL.spinToPosition(-x + mBL.position(degrees),degrees);
+  mBR.spinToPosition(-x + mBR.position(degrees),degrees);
 }
 
 void moveForward(){
   mFR.spin(forward,50,rpm);
   mBR.spin(forward,50,rpm);
-  mFL.spin(forward,50,rpm);
-  mBL.spin(forward,50,rpm);
+  //mFL.spin(forward,50,rpm);
+  //mBL.spin(forward,50,rpm);
 }
 //code to run during drive control period
 void drv(){
   //drives the robot
   mFR.spin(forward,(cr.Axis3.position() - cr.Axis4.position()), rpm);
   mBR.spin(forward,(cr.Axis3.position() - cr.Axis4.position()), rpm);
-  mFL.spin(forward, (cr.Axis3.position() + cr.Axis4.position()), rpm);
-  mBL.spin(forward, (cr.Axis3.position() + cr.Axis4.position()), rpm);
 
 
   //latch
@@ -163,8 +160,9 @@ void sense(){
         break;
       }
     }
-
     moveForward();
+
+    //chinchilla
   }
 
   wait(0.5, seconds);
@@ -173,6 +171,7 @@ void sense(){
 //code for self driving
 void automous(){
   bumpf.pressed(turn180);
+  mLatch.spin(forward);//CHECK THIS LATER
   sense();
 }
 
@@ -192,4 +191,6 @@ int main() {
   while (true) {
     motorTest();
   }
+
+  return 0;
 }
